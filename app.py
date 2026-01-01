@@ -26,7 +26,19 @@ def node_modules(filename):
 
 # Configuration
 DEFAULT_MODEL_URL = "https://ml-site.cdn-apple.com/models/sharp/sharp_2572gikvuh.pt"
-device = "cuda" if torch.cuda.is_available() else ("mps" if torch.mps.is_available() else "cpu")
+
+# Environment variables
+HOST = os.getenv('HOST', '0.0.0.0')
+PORT = int(os.getenv('PORT', '8080'))
+USE_SSL = os.getenv('USE_SSL', 'true').lower() in ('true', '1', 'yes')
+FORCE_CPU = os.getenv('FORCE_CPU', 'false').lower() in ('true', '1', 'yes')
+
+# Device selection
+if FORCE_CPU:
+    device = "cpu"
+    LOGGER.info("Forced CPU mode via FORCE_CPU environment variable")
+else:
+    device = "cuda" if torch.cuda.is_available() else ("mps" if torch.mps.is_available() else "cpu")
 LOGGER.info(f"Using device: {device}")
 
 # Global model
@@ -166,7 +178,7 @@ def get_samples():
     samples_dir = Path("static/samples")
     if not samples_dir.exists():
         return jsonify([])
-    
+
     samples = []
     extensions = {".jpg", ".jpeg", ".png"}
     for file_path in samples_dir.iterdir():
@@ -174,14 +186,14 @@ def get_samples():
             # Prefer .sog (compressed) version if it exists, fallback to .ply
             sog_path = file_path.with_suffix('.sog')
             ply_path = file_path.with_suffix(".ply")
-            
+
             if sog_path.exists():
                 splat_file = sog_path
             elif ply_path.exists():
                 splat_file = ply_path
             else:
                 continue
-            
+
             samples.append({
                 "name": file_path.stem,
                 "image": f"/static/samples/{file_path.name}",
@@ -189,7 +201,20 @@ def get_samples():
             })
     return jsonify(samples)
 
+@app.route('/health')
+def health():
+    """Health check endpoint for Docker and orchestration"""
+    status = {
+        "status": "ok",
+        "device": device,
+        "model_loaded": gaussian_predictor is not None
+    }
+    return jsonify(status), 200
+
 if __name__ == '__main__':
     load_model()
     # Run with SSL to enable Secure Context (required for WebXR on remote/local IP)
-    app.run(host='0.0.0.0', port=8080, ssl_context='adhoc')
+    # SSL can be disabled via USE_SSL=false for internal Docker networking
+    ssl_context = 'adhoc' if USE_SSL else None
+    LOGGER.info(f"Starting server on {HOST}:{PORT} (SSL: {USE_SSL})")
+    app.run(host=HOST, port=PORT, ssl_context=ssl_context)

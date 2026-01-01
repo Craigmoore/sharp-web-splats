@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  sharp-web-splats:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sharp-web-splats
+    ports:
+      - "8080:8080"
+    volumes:
+      # Persist model cache to avoid re-downloading on container restart
+      - model-cache:/root/.cache/torch/hub/checkpoints
+      # Persist generated splats
+      - ./static:/app/static
+      # Optional: mount samples directory
+      - ./static/samples:/app/static/samples
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8080
+      - USE_SSL=true
+      # Uncomment to force CPU mode (default: auto-detect)
+      # - FORCE_CPU=true
+    restart: unless-stopped
+    # Uncomment for better logging
+    # logging:
+    #   driver: "json-file"
+    #   options:
+    #     max-size: "10m"
+    #     max-file: "3"
+
+  # GPU-enabled service (requires NVIDIA Container Toolkit)
+  # Use: docker-compose up sharp-web-splats-gpu
+  sharp-web-splats-gpu:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sharp-web-splats-gpu
+    ports:
+      - "8080:8080"
+    volumes:
+      - model-cache:/root/.cache/torch/hub/checkpoints
+      - ./static:/app/static
+      - ./static/samples:/app/static/samples
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8080
+      - USE_SSL=true
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    # Alternative syntax for older Docker Compose versions:
+    # runtime: nvidia
+    # environment:
+    #   - NVIDIA_VISIBLE_DEVICES=all
+
+volumes:
+  model-cache:
+    driver: local

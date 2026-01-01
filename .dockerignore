@@ -1,0 +1,59 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+env/
+*.egg-info/
+.eggs/
+*.egg
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Git
+.git/
+.gitignore
+.gitattributes
+.gitmodules
+# Note: We need .git for submodules, but it's copied explicitly in Dockerfile
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Documentation
+*.md
+README*
+LICENSE
+
+# Generated files (will be created at runtime)
+static/input.jpg
+static/output.ply
+static/output.sog
+
+# Model cache (will be mounted as volume)
+.cache/
+
+# Logs
+*.log
+
+# OS
+Thumbs.db
+.DS_Store
