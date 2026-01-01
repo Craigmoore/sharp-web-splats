@@ -1,0 +1,4 @@
+api_url: 'http://localhost:8080'
+default_format: 'sog'
+generation_timeout: 60
+max_file_size: 10485760

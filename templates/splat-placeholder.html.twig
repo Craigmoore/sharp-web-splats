@@ -1,0 +1,20 @@
+{#
+/**
+ * @file
+ * Template for placeholder while splat is being generated.
+ *
+ * Available variables:
+ * - image_file: Source image file entity
+ * - placeholder_text: Status message
+ * - show_fallback: Whether to show original image
+ */
+#}
+<div class="splat-placeholder" data-image-file-id="{{ image_file.id }}">
+  <div class="splat-status">
+    <div class="splat-loading-spinner"></div>
+    <p>{{ placeholder_text }}</p>
+  </div>
+  {% if show_fallback %}
+    <img src="{{ file_url(image_file.uri) }}" alt="{{ image_file.filename }}" class="splat-fallback-image">
+  {% endif %}
+</div>

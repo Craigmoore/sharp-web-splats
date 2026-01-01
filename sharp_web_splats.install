@@ -1,0 +1,82 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the sharp_web_splats module.
+ */
+
+use Drupal\Core\File\FileSystemInterface;
+
+/**
+ * Implements hook_install().
+ */
+function sharp_web_splats_install() {
+  // Create splats directory.
+  $directory = 'public://splats';
+  \Drupal::service('file_system')->prepareDirectory($directory, FileSystemInterface::CREATE_DIRECTORY | FileSystemInterface::MODIFY_PERMISSIONS);
+
+  \Drupal::messenger()->addStatus(t('SHARP Web Splats module installed successfully. Configure settings at <a href=":url">/admin/config/media/sharp-web-splats</a>.', [
+    ':url' => '/admin/config/media/sharp-web-splats',
+  ]));
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function sharp_web_splats_uninstall() {
+  // Delete configuration.
+  \Drupal::configFactory()->getEditable('sharp_web_splats.settings')->delete();
+
+  // Clean up state.
+  \Drupal::state()->deleteMultiple([
+    'sharp_web_splats.queued',
+    'sharp_web_splats.in_progress',
+  ]);
+
+  // Optionally delete all generated splats.
+  // IMPORTANT: Uncomment this if you want to delete splat files on uninstall.
+  // Be careful - this deletes user data!
+  /*
+  $file_system = \Drupal::service('file_system');
+  $directory = 'public://splats';
+  if (file_exists($directory)) {
+    $file_system->deleteRecursive($directory);
+    \Drupal::messenger()->addWarning(t('All generated splat files have been deleted.'));
+  }
+  */
+
+  \Drupal::messenger()->addStatus(t('SHARP Web Splats module has been uninstalled. Generated splat files remain in public://splats/ and can be manually deleted if needed.'));
+}
+
+/**
+ * Implements hook_requirements().
+ */
+function sharp_web_splats_requirements($phase) {
+  $requirements = [];
+
+  if ($phase === 'install') {
+    // Check PHP version.
+    if (version_compare(PHP_VERSION, '8.1.0') < 0) {
+      $requirements['php'] = [
+        'title' => t('PHP'),
+        'value' => PHP_VERSION,
+        'severity' => REQUIREMENT_ERROR,
+        'description' => t('SHARP Web Splats requires PHP 8.1 or higher.'),
+      ];
+    }
+
+    // Check if public files directory is writable.
+    $file_system = \Drupal::service('file_system');
+    $public_directory = 'public://';
+    if (!$file_system->prepareDirectory($public_directory, FileSystemInterface::CREATE_DIRECTORY)) {
+      $requirements['sharp_web_splats_directory'] = [
+        'title' => t('Public files directory'),
+        'value' => t('Not writable'),
+        'severity' => REQUIREMENT_ERROR,
+        'description' => t('SHARP Web Splats requires a writable public files directory to store generated splat files.'),
+      ];
+    }
+  }
+
+  return $requirements;
+}

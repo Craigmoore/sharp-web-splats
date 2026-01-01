@@ -1,0 +1,35 @@
+{
+  "name": "drupal/sharp_web_splats",
+  "description": "Field formatter for displaying images as 3D Gaussian Splats using Apple SHARP model",
+  "type": "drupal-module",
+  "license": "GPL-2.0-or-later",
+  "homepage": "https://www.drupal.org/project/sharp_web_splats",
+  "keywords": [
+    "drupal",
+    "3d",
+    "gaussian splat",
+    "field formatter",
+    "webxr",
+    "vr",
+    "ar"
+  ],
+  "require": {
+    "php": ">=8.1",
+    "drupal/core": "^10.0 || ^11.0"
+  },
+  "require-dev": {
+    "drupal/core-dev": "^10.0"
+  },
+  "authors": [
+    {
+      "name": "Craig Moore",
+      "homepage": "https://github.com/Craigmoore"
+    }
+  ],
+  "support": {
+    "issues": "https://github.com/Craigmoore/sharp-web-splats/issues",
+    "source": "https://github.com/Craigmoore/sharp-web-splats"
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
+}

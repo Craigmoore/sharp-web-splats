@@ -1,0 +1,75 @@
+{#
+/**
+ * @file
+ * Template for rendering the 3D Gaussian Splat viewer.
+ *
+ * Available variables:
+ * - splat_url: URL to the .sog or .ply file
+ * - settings: Formatter settings
+ * - image_file: The source image file entity
+ */
+#}
+<div class="splat-viewer-wrapper" style="width: {{ settings.viewer_width }}; height: {{ settings.viewer_height }};">
+  <div class="splat-viewer" data-splat-url="{{ splat_url }}">
+    <pc-app antialias="false" depth="false" high-resolution="false" stencil="false"
+            xr-mode="{{ settings.enable_vr ? 'vr' : 'none' }}">
+
+      {# PlayCanvas scripts #}
+      <pc-asset src="https://cdn.jsdelivr.net/npm/playcanvas@2/scripts/esm/camera-controls.mjs"></pc-asset>
+      {% if settings.enable_vr or settings.enable_ar %}
+        <pc-asset src="https://cdn.jsdelivr.net/npm/playcanvas@2/scripts/esm/xr-controllers.mjs"></pc-asset>
+        <pc-asset src="https://cdn.jsdelivr.net/npm/playcanvas@2/scripts/esm/xr-navigation.mjs"></pc-asset>
+        <pc-asset src="https://cdn.jsdelivr.net/npm/playcanvas@2/scripts/esm/xr-session.mjs"></pc-asset>
+      {% endif %}
+
+      {# Splat asset #}
+      <pc-asset id="splatAsset" type="gsplat" src="{{ splat_url }}"></pc-asset>
+
+      <pc-scene>
+        {# Camera #}
+        <pc-entity name="camera root">
+          <pc-entity name="camera" position="0 2 3.5">
+            <pc-camera clear-color="0.05 0.05 0.05" far-clip="100"></pc-camera>
+            <pc-scripts>
+              <pc-script name="cameraControls" attributes='{
+                "enableFly": false,
+                "enablePan": true,
+                "focusPoint": "vec3:0,2,0",
+                "sceneSize": 10
+              }'></pc-script>
+            </pc-scripts>
+          </pc-entity>
+          {% if settings.enable_vr or settings.enable_ar %}
+          <pc-scripts>
+            <pc-script name="xrControllers"></pc-script>
+            <pc-script name="xrNavigation"></pc-script>
+            <pc-script name="xrSession"></pc-script>
+          </pc-scripts>
+          {% endif %}
+        </pc-entity>
+
+        {# Light #}
+        <pc-entity name="light" rotation="45 45 0">
+          <pc-light type="directional" intensity="1"></pc-light>
+        </pc-entity>
+
+        {# Splat entity #}
+        <pc-entity name="splatEntity" position="0 1 0" rotation="180 45 0">
+          <pc-splat asset="splatAsset"></pc-splat>
+        </pc-entity>
+      </pc-scene>
+    </pc-app>
+
+    {# VR/AR controls #}
+    {% if settings.enable_vr or settings.enable_ar %}
+    <div class="splat-controls">
+      {% if settings.enable_ar %}
+      <button class="splat-control-btn" id="arBtn" title="{{ 'Enter AR'|t }}">📱</button>
+      {% endif %}
+      {% if settings.enable_vr %}
+      <button class="splat-control-btn" id="vrBtn" title="{{ 'Enter VR'|t }}">🥽</button>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>

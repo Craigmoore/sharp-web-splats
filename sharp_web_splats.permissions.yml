@@ -1,0 +1,4 @@
+administer sharp web splats:
+  title: 'Administer SHARP Web Splats'
+  description: 'Configure SHARP service settings and manage splat generation'
+  restrict access: true

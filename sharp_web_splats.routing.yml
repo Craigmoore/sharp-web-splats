@@ -1,0 +1,25 @@
+sharp_web_splats.settings:
+  path: '/admin/config/media/sharp-web-splats'
+  defaults:
+    _form: '\Drupal\sharp_web_splats\Form\SettingsForm'
+    _title: 'SHARP Web Splats Settings'
+  requirements:
+    _permission: 'administer sharp web splats'
+
+sharp_web_splats.check_generation:
+  path: '/sharp-web-splats/check-generation/{file_id}'
+  defaults:
+    _controller: '\Drupal\sharp_web_splats\Controller\SplatController::checkGeneration'
+  requirements:
+    _permission: 'access content'
+    file_id: \d+
+  methods: [GET]
+
+sharp_web_splats.regenerate:
+  path: '/sharp-web-splats/regenerate/{file_id}'
+  defaults:
+    _controller: '\Drupal\sharp_web_splats\Controller\SplatController::regenerate'
+  requirements:
+    _permission: 'administer sharp web splats'
+    file_id: \d+
+  methods: [POST]

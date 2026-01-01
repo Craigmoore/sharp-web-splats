@@ -1,0 +1,12 @@
+name: 'SHARP Web Splats'
+type: module
+description: 'Field formatter for displaying images as interactive 3D Gaussian Splats using Apple SHARP model'
+package: Media
+core_version_requirement: ^10 || ^11
+
+dependencies:
+  - drupal:file
+  - drupal:image
+  - drupal:media (optional)
+
+configure: sharp_web_splats.settings

@@ -1,0 +1,22 @@
+playcanvas-viewer:
+  version: 1.x
+  js:
+    https://cdn.jsdelivr.net/npm/playcanvas@2.14.4/build/playcanvas.min.js: { type: external, minified: true }
+    https://cdn.jsdelivr.net/npm/@playcanvas/web-components@0.2.12/dist/pwc.mjs: { type: external, minified: true, attributes: { type: module } }
+    js/splat-viewer.js: {}
+  css:
+    component:
+      css/splat-viewer.css: {}
+  dependencies:
+    - core/drupal
+    - core/drupalSettings
+
+generation-poller:
+  version: 1.x
+  js:
+    js/generation-poller.js: {}
+  dependencies:
+    - core/drupal
+    - core/drupalSettings
+    - core/jquery
+    - core/once

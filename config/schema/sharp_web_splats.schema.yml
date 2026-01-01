@@ -1,0 +1,16 @@
+sharp_web_splats.settings:
+  type: config_object
+  label: 'SHARP Web Splats settings'
+  mapping:
+    api_url:
+      type: string
+      label: 'SHARP Service API URL'
+    default_format:
+      type: string
+      label: 'Default splat format'
+    generation_timeout:
+      type: integer
+      label: 'Generation timeout in seconds'
+    max_file_size:
+      type: integer
+      label: 'Maximum file size in bytes'

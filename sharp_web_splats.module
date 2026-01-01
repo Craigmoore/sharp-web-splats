@@ -1,0 +1,130 @@
+<?php
+
+/**
+ * @file
+ * Main module file for SHARP Web Splats.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\file\FileInterface;
+
+/**
+ * Implements hook_help().
+ */
+function sharp_web_splats_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    case 'help.page.sharp_web_splats':
+      $output = '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('SHARP Web Splats provides a field formatter for displaying images as interactive 3D Gaussian Splats using Apple SHARP model.') . '</p>';
+      $output .= '<h3>' . t('Uses') . '</h3>';
+      $output .= '<dl>';
+      $output .= '<dt>' . t('Field Formatter') . '</dt>';
+      $output .= '<dd>' . t('Add the "3D Gaussian Splat Viewer" formatter to any image field to display images as interactive 3D splats with PlayCanvas.') . '</dd>';
+      $output .= '<dt>' . t('Configuration') . '</dt>';
+      $output .= '<dd>' . t('Configure the SHARP service URL and other settings at <a href=":settings">SHARP Web Splats settings</a>.', [':settings' => '/admin/config/media/sharp-web-splats']) . '</dd>';
+      $output .= '</dl>';
+      return $output;
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function sharp_web_splats_theme($existing, $type, $theme, $path) {
+  return [
+    'splat_viewer' => [
+      'variables' => [
+        'splat_url' => NULL,
+        'settings' => [],
+        'image_file' => NULL,
+      ],
+      'template' => 'splat-viewer',
+    ],
+    'splat_placeholder' => [
+      'variables' => [
+        'image_file' => NULL,
+        'placeholder_text' => NULL,
+        'show_fallback' => TRUE,
+      ],
+      'template' => 'splat-placeholder',
+    ],
+  ];
+}
+
+/**
+ * Implements hook_file_delete().
+ */
+function sharp_web_splats_file_delete(FileInterface $file) {
+  // Clean up associated splat when image is deleted.
+  $splat_manager = \Drupal::service('sharp_web_splats.file_manager');
+  $splat_manager->deleteSplatForImage($file);
+}
+
+/**
+ * Implements hook_cron().
+ */
+function sharp_web_splats_cron() {
+  // Clean up stale queue entries.
+  $state = \Drupal::state();
+  $in_progress = $state->get('sharp_web_splats.in_progress', []);
+
+  // If items have been in-progress for > 10 minutes, assume they failed.
+  // This is a safety mechanism to prevent stuck items.
+  // In a production environment, you might want to track timestamps properly.
+
+  // For now, we'll just log the queue stats.
+  $queue_service = \Drupal::service('sharp_web_splats.generation_queue');
+  $stats = $queue_service->getQueueStats();
+
+  if (!empty($stats['in_progress'])) {
+    \Drupal::logger('sharp_web_splats')->info('Queue status: @items items, @in_progress in progress', [
+      '@items' => $stats['items'],
+      '@in_progress' => count($stats['in_progress']),
+    ]);
+  }
+}
+
+/**
+ * Implements hook_requirements().
+ */
+function sharp_web_splats_requirements($phase) {
+  $requirements = [];
+
+  if ($phase === 'runtime') {
+    $api_client = \Drupal::service('sharp_web_splats.api_client');
+
+    if ($api_client->healthCheck()) {
+      $requirements['sharp_web_splats_service'] = [
+        'title' => t('SHARP Service'),
+        'value' => t('Connected'),
+        'description' => t('The SHARP generation service is running and responding.'),
+        'severity' => REQUIREMENT_OK,
+      ];
+    }
+    else {
+      $requirements['sharp_web_splats_service'] = [
+        'title' => t('SHARP Service'),
+        'value' => t('Not available'),
+        'description' => t('The SHARP generation service is not responding. Check that the Flask app is running at the configured URL. Visit <a href=":settings">settings</a> to configure.', [
+          ':settings' => '/admin/config/media/sharp-web-splats',
+        ]),
+        'severity' => REQUIREMENT_WARNING,
+      ];
+    }
+
+    // Check queue status.
+    $queue_service = \Drupal::service('sharp_web_splats.generation_queue');
+    $stats = $queue_service->getQueueStats();
+
+    if ($stats['items'] > 100) {
+      $requirements['sharp_web_splats_queue'] = [
+        'title' => t('SHARP Queue'),
+        'value' => t('@count items pending', ['@count' => $stats['items']]),
+        'description' => t('The splat generation queue has many pending items. Ensure cron is running regularly.'),
+        'severity' => REQUIREMENT_WARNING,
+      ];
+    }
+  }
+
+  return $requirements;
+}

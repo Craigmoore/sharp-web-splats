@@ -1,0 +1,12 @@
+services:
+  sharp_web_splats.api_client:
+    class: Drupal\sharp_web_splats\Service\SharpApiClient
+    arguments: ['@http_client', '@config.factory', '@logger.factory']
+
+  sharp_web_splats.file_manager:
+    class: Drupal\sharp_web_splats\Service\SplatFileManager
+    arguments: ['@entity_type.manager', '@file_system', '@logger.factory']
+
+  sharp_web_splats.generation_queue:
+    class: Drupal\sharp_web_splats\Service\SplatGenerationQueue
+    arguments: ['@queue', '@logger.factory']
